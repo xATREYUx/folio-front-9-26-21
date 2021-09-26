@@ -1,0 +1,117 @@
+import axios from "axios";
+import React, { useState, createContext, useEffect } from "react";
+import domain from "../../util/domain";
+
+const PostContext = createContext();
+
+const PostContextProvider = (props) => {
+  console.log("PostContext Initiated", props);
+
+  const [posts, setPosts] = useState([]);
+  const [usersPosts, setUsersPosts] = useState([]);
+
+  const createPost = async (formData) => {
+    for (var value of formData.values()) {
+      console.log("createPost data", value);
+    }
+
+    try {
+      console.log("createPost Action Initiated");
+      //  formData.imageOne = urllocation
+      const config = {
+        headers: {
+          "content-type": "multipart/form-data",
+        },
+      };
+      const newPostRes = await axios.post(`${domain}/posts`, formData, config);
+      console.log("newPostRes log", newPostRes.data);
+      const data = newPostRes.data;
+      setUsersPosts((prevState) => [...prevState, data]);
+      console.log("---Post Created---");
+    } catch (err) {
+      console.log("createPost error", err);
+    }
+  };
+
+  const updatePost = async ({ formData, editPostId }) => {
+    for (var value of formData.values()) {
+      console.log("editPost data", value);
+    }
+
+    try {
+      console.log("editPost Action Initiated");
+      //  formData.imageOne = urllocation
+      const config = {
+        headers: {
+          "content-type": "multipart/form-data",
+        },
+      };
+      const editPostRes = await axios.put(
+        `${domain}/posts/${editPostId}`,
+        formData,
+        config
+      );
+      console.log("editPost log", editPostRes.data);
+      const data = editPostRes.data;
+      const newState = usersPosts.filter((item) => item.id === editPostId);
+      setUsersPosts((prevState) => [...newState, data]);
+      console.log("---Post editPost---");
+    } catch (err) {
+      console.log("update error", err);
+    }
+  };
+
+  const getPosts = async () => {
+    try {
+      console.log("getPosts Initiated");
+      let getPostsRes = await axios.get(`${domain}/posts`);
+      console.log("getPosts response", getPostsRes.data);
+      setPosts(getPostsRes.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const getUsersPosts = async () => {
+    try {
+      console.log("----getUsersPosts Initiated----");
+      const getUsersPostsRes = await axios.get(`${domain}/posts/user`);
+      console.log("getUsersPosts response", getUsersPostsRes.data);
+      setUsersPosts(getUsersPostsRes.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const deletePost = async () => {
+    try {
+      // signed out
+    } catch (e) {
+      // an error
+    }
+  };
+
+  useEffect(() => {
+    getPosts();
+  }, []);
+
+  return (
+    <PostContext.Provider
+      value={{
+        getPosts,
+        updatePost,
+        posts,
+        setPosts,
+        usersPosts,
+        setUsersPosts,
+        createPost,
+        getUsersPosts,
+      }}
+    >
+      {props.children}
+    </PostContext.Provider>
+  );
+};
+export default PostContext;
+
+export { PostContextProvider };
